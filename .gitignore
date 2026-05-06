@@ -1,0 +1,46 @@
+# ============================================
+# .gitignore для лабораторной работы №10
+# Выполнил: Gorbunov, Группа 9ПО-31
+# ============================================
+
+# --- Системные файлы ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Логи и временные файлы ---
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# --- Конфигурации с чувствительными данными ---
+config.php
+.env
+*.key
+*.crt
+*.pem
+
+# --- Папки зависимостей ---
+/vendor/
+/node_modules/
+/bower_components/
+
+# --- IDE и редакторы ---
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# --- Операционные системы ---
+[Tt]humbs.db
+[Dd]esktop.ini
+ehthumbs.db
+.DS_Store
+
+# --- Сборка и кэш ---
+dist/
+build/
+.cache/
