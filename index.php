@@ -1,36 +1,28 @@
 <?php
 /**
- * Лабораторная работа №11: Работа с файлами в PHP
+ * Лабораторная работа №12
+ * Тема: Обработка исключений и работа с датами в PHP
  * Выполнил: Gorbunov
  * Группа: 9ПО-31
  * Репозиторий: github.com/blablalblable/gorbunov.com
  */
 
-// Базовая директория для работы с файлами
-$baseDir = __DIR__ . '/files';
+// Базовая директория для логов
+$logFile = __DIR__ . '/files/error_log.txt';
 
-// Функция для форматирования размера файла
-function formatSize($bytes) {
-    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    $bytes = max(0, $bytes);
-    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-    $pow = min($pow, count($units) - 1);
-    $bytes /= pow(1024, $pow);
-    return round($bytes, 2) . ' ' . $units[$pow];
+// Функция для форматированного вывода
+function result($label, $value, $type = 'info') {
+    $colors = ['success' => '#2ecc71', 'error' => '#e74c3c', 'warning' => '#f39c12', 'info' => '#3498db'];
+    $color = $colors[$type] ?? $colors['info'];
+    echo "<div style='padding:10px;margin:8px 0;background:#2a2a3e;border-left:4px solid {$color};border-radius:4px;'>";
+    echo "<strong style='color:#00d4aa'>{$label}:</strong> <span style='color:#ecf0f1'>" . htmlspecialchars($value) . "</span>";
+    echo "</div>";
 }
 
-// Функция для вывода сообщений
-function message($text, $type = 'info') {
-    $colors = [
-        'success' => '#2ecc71',
-        'error' => '#e74c3c',
-        'warning' => '#f39c12',
-        'info' => '#3498db'
-    ];
-    $color = $colors[$type] ?? $colors['info'];
-    echo "<div style='padding:10px;margin:10px 0;background:#f8f9fa;border-left:4px solid {$color};border-radius:4px;'>";
-    echo "<strong>[{$type}]</strong> " . htmlspecialchars($text);
-    echo "</div>";
+function logError($message) {
+    global $logFile;
+    $entry = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
+    file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
 }
 ?>
 <!DOCTYPE html>
@@ -38,14 +30,14 @@ function message($text, $type = 'info') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЛЗ №11 - Работа с файлами - Gorbunov 9ПО-31</title>
+    <title>ЛЗ №12 - Исключения и даты - Gorbunov 9ПО-31</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
             color: #ecf0f1;
         }
         .container {
@@ -62,7 +54,7 @@ function message($text, $type = 'info') {
             text-align: center;
         }
         h2 {
-            color: #7b68ee;
+            color: #9b59b6;
             margin: 25px 0 15px;
             font-size: 1.2em;
             border-left: 4px solid #00d4aa;
@@ -103,11 +95,7 @@ function message($text, $type = 'info') {
             overflow-x: auto;
             margin: 10px 0;
         }
-        pre code {
-            background: none;
-            padding: 0;
-            color: #e0e0e0;
-        }
+        pre code { background: none; padding: 0; color: #e0e0e0; }
         
         table {
             width: 100%;
@@ -119,11 +107,7 @@ function message($text, $type = 'info') {
             border: 1px solid #3a3a5e;
             text-align: left;
         }
-        th {
-            background: #00d4aa;
-            color: #1a1a2e;
-            font-weight: bold;
-        }
+        th { background: #00d4aa; color: #1a1a2e; font-weight: bold; }
         
         .footer {
             text-align: center;
@@ -143,14 +127,29 @@ function message($text, $type = 'info') {
             font-weight: bold;
             margin-left: 10px;
         }
-        .file-tag {
-            background: #7b68ee;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            margin-right: 5px;
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #3a3a5e;
+            border-radius: 6px;
+            background: #16213e;
+            color: #ecf0f1;
+            font-size: 14px;
         }
+        .form-group input:focus { outline: none; border-color: #00d4aa; }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
         a { color: #00d4aa; text-decoration: none; }
         a:hover { text-decoration: underline; }
     </style>
@@ -158,384 +157,335 @@ function message($text, $type = 'info') {
 <body>
 <div class="container">
 
-    <h1>📁 ЛЗ №11: Работа с файлами в PHP <span class="badge">Gorbunov 9ПО-31</span></h1>
+    <h1>⚡ ЛЗ №12: Исключения и даты <span class="badge">Gorbunov 9ПО-31</span></h1>
 
     <?php
     // ============================================================
-    // ЗАДАНИЕ ЧАСТЬ 1
+    // ЧАСТЬ 1: ОБРАБОТКА ИСКЛЮЧЕНИЙ
     // ============================================================
     ?>
 
-    <!-- ЗАДАНИЕ 1.1: Создание файла и запись -->
+    <!-- ЗАДАНИЕ 1.1: Обработка ошибки fopen -->
     <div class="task">
-        <h2>📝 Задание 1.1: Создать 'test.txt' и записать 'Привет, мир!'</h2>
+        <h2>📁 Задание 1.1: Обработчик ошибки открытия несуществующего файла</h2>
         <?php
-        $testFile = $baseDir . '/test.txt';
-        $content = 'Привет, мир!';
+        $nonExistentFile = __DIR__ . '/files/does_not_exist_12345.txt';
         
-        // Запись в файл
-        $file = fopen($testFile, 'w');
-        if ($file) {
-            fwrite($file, $content);
-            fclose($file);
-            message("✅ Файл '$testFile' создан и записан: '$content'", 'success');
-        } else {
-            message("❌ Ошибка создания файла", 'error');
-        }
-        
-        // Проверка существования
-        if (file_exists($testFile)) {
-            echo "<div class='result success'>";
-            echo "📄 Файл существует: <code>" . basename($testFile) . "</code><br>";
-            echo "📏 Размер: " . filesize($testFile) . " байт";
-            echo "</div>";
+        try {
+            // Подавляем стандартное предупреждение и выбрасываем исключение
+            $handle = @fopen($nonExistentFile, 'r');
+            if ($handle === false) {
+                throw new Exception("Не удалось открыть файл: '$nonExistentFile'");
+            }
+            fclose($handle);
+            result("Статус", "Файл открыт успешно", 'success');
+        } catch (Exception $ex) {
+            result("❌ Исключение", $ex->getMessage(), 'error');
+            result("📄 Файл", $ex->getFile() . ':' . $ex->getLine(), 'warning');
+            result("🔢 Код", $ex->getCode(), 'info');
         }
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 1.2: Чтение из файла -->
+    <!-- ЗАДАНИЕ 1.2: Деление на ноль с логированием -->
     <div class="task">
-        <h2>📖 Задание 1.2: Считать данные из 'test.txt' и вывести на экран</h2>
+        <h2>➗ Задание 1.2: Исключение при делении на ноль + запись в log.txt</h2>
         <?php
-        if (file_exists($testFile)) {
-            $file = fopen($testFile, 'r');
-            if ($file) {
-                echo "<p><strong>Чтение файла построчно:</strong></p>";
-                echo "<div class='result'>";
-                while (!feof($file)) {
-                    $line = fgets($file);
-                    echo htmlspecialchars($line) . "<br>";
+        function safeDivide($a, $b) {
+            if ($b == 0) {
+                throw new Exception("DivisionByZeroError: Нельзя делить на ноль! ({$a} / {$b})");
+            }
+            return $a / $b;
+        }
+        
+        $testCases = [[10, 2], [100, 0], [45, 5], [0, 0]];
+        
+        echo "<table><tr><th>Операция</th><th>Результат</th><th>Статус</th></tr>";
+        foreach ($testCases as [$num, $den]) {
+            try {
+                $res = safeDivide($num, $den);
+                echo "<tr><td><code>$num / $den</code></td><td><strong>$res</strong></td><td style='color:#2ecc71'>✅</td></tr>";
+            } catch (Exception $ex) {
+                logError($ex->getMessage());
+                echo "<tr><td><code>$num / $den</code></td><td><strong>Ошибка</strong></td><td style='color:#e74c3c'>❌</td></tr>";
+            }
+        }
+        echo "</table>";
+        
+        // Показать содержимое лога
+        if (file_exists($logFile)) {
+            echo "<p><strong>📋 Содержимое log.txt:</strong></p>";
+            echo "<div class='result'>" . htmlspecialchars(file_get_contents($logFile)) . "</div>";
+        }
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 1.3: Доступ к несуществующему элементу массива -->
+    <div class="task">
+        <h2>🗺️ Задание 1.3: Обработчик для несуществующего ключа в массиве</h2>
+        <?php
+        $countries = ['Spain' => 'Madrid', 'Russia' => 'Moscow', 'France' => 'Paris'];
+        $queries = ['Spain', 'Germany', 'Russia', 'Italy', 'France'];
+        
+        echo "<p><strong>Исходный массив:</strong> <code>" . json_encode($countries, JSON_UNESCAPED_UNICODE) . "</code></p>";
+        echo "<table><tr><th>Запрос</th><th>Результат</th><th>Статус</th></tr>";
+        
+        foreach ($queries as $country) {
+            try {
+                if (!array_key_exists($country, $countries)) {
+                    throw new Exception("KeyError: Страна '$country' не найдена в массиве");
                 }
-                echo "</div>";
-                fclose($file);
-                message("✅ Файл успешно прочитан", 'success');
+                $capital = $countries[$country];
+                echo "<tr><td><code>\$countries['$country']</code></td><td><strong>$capital</strong></td><td style='color:#2ecc71'>✅</td></tr>";
+            } catch (Exception $ex) {
+                echo "<tr><td><code>\$countries['$country']</code></td><td><strong>❌ " . htmlspecialchars($ex->getMessage()) . "</strong></td><td style='color:#e74c3c'>Ошибка</td></tr>";
             }
-        } else {
-            message("❌ Файл не найден", 'error');
         }
-        
-        // Альтернативный способ: file_get_contents
-        echo "<p><strong>Альтернативный способ (file_get_contents):</strong></p>";
-        $content = file_get_contents($testFile);
-        echo "<div class='result success'>" . htmlspecialchars($content) . "</div>";
+        echo "</table>";
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 1.3: Переименование файла -->
+    <?php
+    // ============================================================
+    // ЧАСТЬ 2: РАБОТА С ДАТАМИ
+    // ============================================================
+    ?>
+
+    <!-- ЗАДАНИЕ 2.1: Вывод даты в формате timestamp -->
     <div class="task">
-        <h2>✏️ Задание 1.3: Переименовать 'test.txt' в 'mir.txt'</h2>
+        <h2>⏱️ Задание 2.1: 15 марта 2025, 10:25:00 в формате timestamp</h2>
         <?php
-        $mirFile = $baseDir . '/mir.txt';
-        
-        if (file_exists($testFile)) {
-            if (rename($testFile, $mirFile)) {
-                message("✅ Файл переименован: 'test.txt' → 'mir.txt'", 'success');
-                echo "<div class='result'>";
-                echo "🗂️ Старый путь: <code>" . basename($testFile) . "</code><br>";
-                echo "🗂️ Новый путь: <code>" . basename($mirFile) . "</code>";
-                echo "</div>";
-            } else {
-                message("❌ Ошибка переименования файла", 'error');
-            }
-        } else {
-            message("⚠️ Файл 'test.txt' не найден (возможно, уже переименован)", 'warning');
-        }
-        
-        // Проверка нового файла
-        if (file_exists($mirFile)) {
-            echo "<div class='result success'>✅ 'mir.txt' существует</div>";
-        }
+        $timestamp = mktime(10, 25, 0, 3, 15, 2025);
+        result("mktime(10, 25, 0, 3, 15, 2025)", $timestamp, 'success');
+        result("Проверка через date()", date('d.m.Y H:i:s', $timestamp), 'info');
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 1.4: Создание папки и перемещение файла -->
+    <!-- ЗАДАНИЕ 2.2: Разница между датами в секундах -->
     <div class="task">
-        <h2>📂 Задание 1.4: Создать папку 'folder' и переместить 'mir.txt' в неё</h2>
+        <h2>📊 Задание 2.2: Разница между 2.10.1990 08:05:59 и текущим временем</h2>
         <?php
-        $folder = $baseDir . '/folder';
-        $mirInFolder = $folder . '/mir.txt';
+        $past = mktime(8, 5, 59, 10, 2, 1990);
+        $now = time();
+        $diff = $now - $past;
         
-        // Создание папки
-        if (!file_exists($folder)) {
-            if (mkdir($folder, 0775, true)) {
-                message("✅ Папка '$folder' создана", 'success');
-            } else {
-                message("❌ Ошибка создания папки", 'error');
-            }
-        } else {
-            message("ℹ️ Папка уже существует", 'info');
-        }
-        
-        // Перемещение файла
-        if (file_exists($mirFile)) {
-            if (rename($mirFile, $mirInFolder)) {
-                message("✅ Файл перемещён в '$folder'", 'success');
-                echo "<div class='result'>";
-                echo "📁 Путь к файлу: <code>" . htmlspecialchars($mirInFolder) . "</code>";
-                echo "</div>";
-            } else {
-                message("❌ Ошибка перемещения файла", 'error');
-            }
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 1.5: Копирование файла -->
-    <div class="task">
-        <h2>📋 Задание 1.5: Создать копию 'mir.txt' → 'world.txt'</h2>
-        <?php
-        $worldFile = $folder . '/world.txt';
-        
-        if (file_exists($mirInFolder)) {
-            if (copy($mirInFolder, $worldFile)) {
-                message("✅ Файл скопирован: 'mir.txt' → 'world.txt'", 'success');
-                echo "<div class='result'>";
-                echo "📄 Оригинал: <code>" . basename($mirInFolder) . "</code><br>";
-                echo "📄 Копия: <code>" . basename($worldFile) . "</code><br>";
-                echo "📏 Размер копии: " . filesize($worldFile) . " байт";
-                echo "</div>";
-            } else {
-                message("❌ Ошибка копирования файла", 'error');
-            }
-        } else {
-            message("❌ Исходный файл не найден", 'error');
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 1.6: Определение размера файла -->
-    <div class="task">
-        <h2>📏 Задание 1.6: Размер файла 'world.txt' в байтах, МБ, ГБ</h2>
-        <?php
-        if (file_exists($worldFile)) {
-            $size = filesize($worldFile);
-            
-            echo "<table>
-                    <tr><th>Единица</th><th>Значение</th><th>Формула</th></tr>
-                    <tr><td>Байты</td><td><strong>$size B</strong></td><td>filesize()</td></tr>
-                    <tr><td>Килобайты</td><td><strong>" . round($size / 1024, 2) . " KB</strong></td><td>bytes / 1024</td></tr>
-                    <tr><td>Мегабайты</td><td><strong>" . round($size / 1024 / 1024, 4) . " MB</strong></td><td>bytes / 1024²</td></tr>
-                    <tr><td>Гигабайты</td><td><strong>" . round($size / 1024 / 1024 / 1024, 6) . " GB</strong></td><td>bytes / 1024³</td></tr>
-                  </table>";
-            
-            echo "<div class='result success'>";
-            echo "🎯 Форматированный размер: <strong>" . formatSize($size) . "</strong>";
-            echo "</div>";
-        } else {
-            message("❌ Файл 'world.txt' не найден", 'error');
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 1.7: Удаление файла -->
-    <div class="task">
-        <h2>🗑️ Задание 1.7: Удалить файл 'world.txt'</h2>
-        <?php
-        if (file_exists($worldFile)) {
-            if (unlink($worldFile)) {
-                message("✅ Файл 'world.txt' удалён", 'success');
-            } else {
-                message("❌ Ошибка удаления файла", 'error');
-            }
-        } else {
-            message("⚠️ Файл уже не существует", 'warning');
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 1.8: Проверка существования файлов -->
-    <div class="task">
-        <h2>✅ Задание 1.8: Проверить существование 'world.txt' и 'mir.txt'</h2>
-        <?php
-        $filesToCheck = [
-            'world.txt' => $worldFile,
-            'mir.txt' => $mirInFolder
-        ];
+        $years = floor($diff / 31536000);
+        $days = floor(($diff % 31536000) / 86400);
+        $hours = floor(($diff % 86400) / 3600);
+        $minutes = floor(($diff % 3600) / 60);
+        $seconds = $diff % 60;
         
         echo "<table>
-                <tr><th>Файл</th><th>Путь</th><th>Существует?</th><th>Размер</th></tr>";
+                <tr><th>Единица</th><th>Значение</th></tr>
+                <tr><td>Секунды</td><td><strong>$diff</strong></td></tr>
+                <tr><td>Минуты</td><td><strong>" . round($diff / 60) . "</strong></td></tr>
+                <tr><td>Часы</td><td><strong>" . round($diff / 3600) . "</strong></td></tr>
+                <tr><td>Дни</td><td><strong>" . round($diff / 86400) . "</strong></td></tr>
+                <tr><td>Годы (прибл.)</td><td><strong>$years лет, $days дней</strong></td></tr>
+              </table>";
+        result("Точная разница", "$years лет, $days дней, $hours ч, $minutes мин, $seconds сек", 'success');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.3: Текущая дата в формате 'Год.месяц.день Час:Минута:Секунда' -->
+    <div class="task">
+        <h2>📅 Задание 2.3: Текущая дата-время в формате 'Год.месяц.день Час:Минута:Секунда'</h2>
+        <?php
+        $formatted = date('Y.m.d H:i:s');
+        result("date('Y.m.d H:i:s')", $formatted, 'success');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.4: 1 сентября текущего года -->
+    <div class="task">
+        <h2>🍂 Задание 2.4: 1-го сентября текущего года в формате 'Год.месяц.день'</h2>
+        <?php
+        $sept1 = mktime(0, 0, 0, 9, 1); // год опущен = текущий
+        $formatted = date('Y.m.d', $sept1);
+        result("1 сентября " . date('Y'), $formatted, 'success');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.5: День недели 2 февраля 2000 -->
+    <div class="task">
+        <h2>🗓️ Задание 2.5: Какой день недели был 2 февраля 2000 года?</h2>
+        <?php
+        $feb2_2000 = mktime(0, 0, 0, 2, 2, 2000);
+        $dayNum = date('w', $feb2_2000); // 0=Воскресенье, 1=Понедельник...
+        $daysRu = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+        $dayName = $daysRu[$dayNum];
         
-        foreach ($filesToCheck as $name => $path) {
-            $exists = file_exists($path);
-            $size = $exists ? formatSize(filesize($path)) : '—';
-            $status = $exists ? 
-                "<span style='color:#2ecc71'>✅ Да</span>" : 
-                "<span style='color:#e74c3c'>❌ Нет</span>";
+        result("date('w', mktime(0,0,0,2,2,2000))", "$dayNum ($dayName)", 'success');
+        result("Полная дата", date('d.m.Y, l', $feb2_2000), 'info');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.6: Массив дней недели + текущий день + день рождения -->
+    <div class="task">
+        <h2>🎂 Задание 2.6: Массив дней недели, текущий день и 12.06.2016</h2>
+        <?php
+        // Массив дней недели
+        $week = [
+            0 => 'Воскресенье', 1 => 'Понедельник', 2 => 'Вторник',
+            3 => 'Среда', 4 => 'Четверг', 5 => 'Пятница', 6 => 'Суббота'
+        ];
+        
+        // Текущий день
+        $todayNum = date('w');
+        $todayName = $week[$todayNum];
+        
+        // День рождения 12.06.2016
+        $bday = mktime(0, 0, 0, 6, 12, 2016);
+        $bdayNum = date('w', $bday);
+        $bdayName = $week[$bdayNum];
+        
+        echo "<table>
+                <tr><th>Параметр</th><th>Значение</th></tr>
+                <tr><td>Массив \$week</td><td><code>[" . implode(', ', array_map(fn($k,$v)=>"'$k'=>'$v'", array_keys($week), $week)) . "]</code></td></tr>
+                <tr><td>Сегодня (номер)</td><td><code>$todayNum</code></td></tr>
+                <tr><td>Сегодня (название)</td><td><strong>$todayName</strong></td></tr>
+                <tr><td>12.06.2016 (номер)</td><td><code>$bdayNum</code></td></tr>
+                <tr><td>12.06.2016 (название)</td><td><strong>$bdayName</strong></td></tr>
+              </table>";
+        result("🎉 День рождения 12.06.2016", "Выпал на $bdayName", 'success');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.7: Форма сравнения двух дат -->
+    <div class="task">
+        <h2>🔀 Задание 2.7: Форма для сравнения двух дат</h2>
+        
+        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['compare_dates'])): ?>
+            <?php
+            $date1 = $_POST['date1'] ?? '';
+            $date2 = $_POST['date2'] ?? '';
             
-            echo "<tr>
-                    <td><code>$name</code></td>
-                    <td><small>" . htmlspecialchars($path) . "</small></td>
-                    <td>$status</td>
-                    <td>$size</td>
-                  </tr>";
-        }
-        echo "</table>";
-        ?>
-    </div>
-
-    <?php
-    // ============================================================
-    // ЗАДАНИЕ ЧАСТЬ 2
-    // ============================================================
-    ?>
-
-    <!-- ЗАДАНИЕ 2.1: Создание папки 'test' -->
-    <div class="task">
-        <h2>📁 Задание 2.1: Создать папку 'test'</h2>
-        <?php
-        $testDir = $baseDir . '/test';
-        
-        if (!file_exists($testDir)) {
-            if (mkdir($testDir, 0775, true)) {
-                message("✅ Папка '$testDir' создана", 'success');
-            } else {
-                message("❌ Ошибка создания папки", 'error');
-            }
-        } else {
-            message("ℹ️ Папка уже существует", 'info');
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.2: Переименование папки -->
-    <div class="task">
-        <h2>✏️ Задание 2.2: Переименовать 'test' в 'www'</h2>
-        <?php
-        $wwwDir = $baseDir . '/www';
-        
-        if (file_exists($testDir)) {
-            if (rename($testDir, $wwwDir)) {
-                message("✅ Папка переименована: 'test' → 'www'", 'success');
-                echo "<div class='result'>";
-                echo "🗂️ Старый путь: <code>test</code><br>";
-                echo "🗂️ Новый путь: <code>www</code>";
-                echo "</div>";
-            } else {
-                message("❌ Ошибка переименования папки", 'error');
-            }
-        } else {
-            message("⚠️ Папка 'test' не найдена", 'warning');
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.3: Удаление папки -->
-    <div class="task">
-        <h2>🗑️ Задание 2.3: Удалить папку 'www'</h2>
-        <?php
-        if (file_exists($wwwDir)) {
-            // rmdir работает только с пустыми папками
-            // Сначала удалим содержимое если есть
-            $files = scandir($wwwDir);
-            foreach ($files as $file) {
-                if ($file !== '.' && $file !== '..') {
-                    $filePath = $wwwDir . '/' . $file;
-                    if (is_file($filePath)) {
-                        unlink($filePath);
-                    } elseif (is_dir($filePath)) {
-                        // Рекурсивное удаление подпапок
-                        $iterator = new RecursiveIteratorIterator(
-                            new RecursiveDirectoryIterator($filePath, RecursiveDirectoryIterator::SKIP_DOTS),
-                            RecursiveIteratorIterator::CHILD_FIRST
-                        );
-                        foreach ($iterator as $item) {
-                            $item->isDir() ? rmdir($item) : unlink($item);
-                        }
-                        rmdir($filePath);
-                    }
+            if (!empty($date1) && !empty($date2)) {
+                $ts1 = strtotime($date1);
+                $ts2 = strtotime($date2);
+                
+                if ($ts1 === false || $ts2 === false) {
+                    result("❌ Ошибка", "Неверный формат даты", 'error');
+                } else {
+                    $later = $ts1 > $ts2 ? $date1 : $date2;
+                    $earlier = $ts1 > $ts2 ? $date2 : $date1;
+                    $diff = abs($ts1 - $ts2);
+                    $diffDays = floor($diff / 86400);
+                    
+                    echo "<div class='result success'>";
+                    echo "✅ Более поздняя дата: <strong>$later</strong><br>";
+                    echo "📅 Более ранняя: $earlier<br>";
+                    echo "📊 Разница: $diffDays дней";
+                    echo "</div>";
                 }
             }
-            
-            if (rmdir($wwwDir)) {
-                message("✅ Папка 'www' удалена", 'success');
-            } else {
-                message("❌ Ошибка удаления папки", 'error');
-            }
-        } else {
-            message("⚠️ Папка 'www' не найдена", 'warning');
+            ?>
+        <?php endif; ?>
+        
+        <form method="POST" style="background:#16213e;padding:20px;border-radius:8px;margin-top:15px;">
+            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                <div class="form-group">
+                    <label for="date1">Первая дата (формат: 2025-12-31)</label>
+                    <input type="date" id="date1" name="date1" value="<?= $_POST['date1'] ?? '' ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="date2">Вторая дата (формат: 2025-12-31)</label>
+                    <input type="date" id="date2" name="date2" value="<?= $_POST['date2'] ?? '' ?>" required>
+                </div>
+            </div>
+            <button type="submit" name="compare_dates" class="btn">🔍 Сравнить даты</button>
+        </form>
+    </div>
+
+    <!-- ЗАДАНИЕ 2.8: Конвертация формата даты -->
+    <div class="task">
+        <h2>🔄 Задание 2.8: Конвертация 'Год-месяц-день' → 'день-месяц-год'</h2>
+        <?php
+        $inputDate = '2025-12-31';
+        $timestamp = strtotime($inputDate);
+        $output = date('d-m-Y', $timestamp);
+        
+        echo "<table>
+                <tr><th>Исходный формат</th><th>Значение</th></tr>
+                <tr><td>Вход (строка)</td><td><code>$inputDate</code></td></tr>
+                <tr><td>strtotime()</td><td><code>$timestamp</code></td></tr>
+                <tr><td>date('d-m-Y', ...)</td><td><strong>$output</strong></td></tr>
+              </table>";
+        result("Результат конвертации", "$inputDate → $output", 'success');
+        
+        // Тест с другой датой
+        $testDates = ['2000-01-01', '2024-02-29', '1999-12-31'];
+        echo "<p><strong>Дополнительные тесты:</strong></p><ul>";
+        foreach ($testDates as $d) {
+            $converted = date('d-m-Y', strtotime($d));
+            echo "<li><code>$d</code> → <strong>$converted</strong></li>";
         }
+        echo "</ul>";
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.4: Создание папок из массива -->
+    <!-- ЗАДАНИЕ 2.9: Манипуляции с датой через date_create/modify -->
     <div class="task">
-        <h2>🗂️ Задание 2.4: Создать папки из массива в 'test'</h2>
+        <h2>➕➖ Задание 2.9: Прибавление и вычитание интервалов от даты</h2>
         <?php
-        // Восстанавливаем папку test
-        if (!file_exists($testDir)) {
-            mkdir($testDir, 0775, true);
-        }
+        $date = date_create('2000-02-03');
+        $original = date_format($date, 'd.m.Y');
         
-        // Массив с названиями папок
-        $folders = ['documents', 'images', 'videos', 'audio', 'archives'];
+        echo "<p><strong>Исходная дата:</strong> <code>$original</code></p>";
+        echo "<table><tr><th>Операция</th><th>Результат</th><th>Код</th></tr>";
         
-        echo "<p><strong>Массив папок:</strong> <code>['" . implode("', '", $folders) . "']</code></p>";
-        echo "<table><tr><th>Папка</th><th>Путь</th><th>Статус</th></tr>";
+        // +2 дня
+        $d1 = clone $date;
+        date_modify($d1, '+2 days');
+        echo "<tr><td>+2 дня</td><td><strong>" . date_format($d1, 'd.m.Y') . "</strong></td><td><code>+2 days</code></td></tr>";
         
-        foreach ($folders as $folder) {
-            $folderPath = $testDir . '/' . $folder;
-            if (!file_exists($folderPath)) {
-                $created = mkdir($folderPath, 0775, true);
-                $status = $created ? 
-                    "<span style='color:#2ecc71'>✅ Создана</span>" : 
-                    "<span style='color:#e74c3c'>❌ Ошибка</span>";
-            } else {
-                $status = "<span style='color:#f39c12'>ℹ️ Уже существует</span>";
-            }
-            echo "<tr>
-                    <td><code>$folder</code></td>
-                    <td><small>" . htmlspecialchars($folderPath) . "</small></td>
-                    <td>$status</td>
-                  </tr>";
-        }
+        // +1 месяц
+        $d2 = clone $date;
+        date_modify($d2, '+1 month');
+        echo "<tr><td>+1 месяц</td><td><strong>" . date_format($d2, 'd.m.Y') . "</strong></td><td><code>+1 month</code></td></tr>";
+        
+        // +3 дня +1 год
+        $d3 = clone $date;
+        date_modify($d3, '+3 days +1 year');
+        echo "<tr><td>+3 дня +1 год</td><td><strong>" . date_format($d3, 'd.m.Y') . "</strong></td><td><code>+3 days +1 year</code></td></tr>";
+        
+        // -3 дня
+        $d4 = clone $date;
+        date_modify($d4, '-3 days');
+        echo "<tr><td>-3 дня</td><td><strong>" . date_format($d4, 'd.m.Y') . "</strong></td><td><code>-3 days</code></td></tr>";
+        
+        // Комбинированная операция по заданию: +2д +1м +3д +1г -3д
+        $dFinal = clone $date;
+        date_modify($dFinal, '+2 days +1 month +3 days +1 year -3 days');
+        echo "<tr style='background:#00d4aa20'>
+                <td><strong>Итог: +2д +1м +3д +1г -3д</strong></td>
+                <td><strong>" . date_format($dFinal, 'd.m.Y') . "</strong></td>
+                <td><code>+2d +1m +3d +1y -3d</code></td>
+              </tr>";
         echo "</table>";
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.5: Поиск файлов .jpg -->
+    <!-- ЗАДАНИЕ 2.10: Дней до Нового Года -->
     <div class="task">
-        <h2>🔍 Задание 2.5: Вывести все файлы с расширением .jpg из текущей папки</h2>
+        <h2>🎄 Задание 2.10: Сколько дней осталось до Нового Года?</h2>
         <?php
-        // Создадим тестовые .jpg файлы для демонстрации
-        $jpgFiles = ['photo1.jpg', 'image2.jpg', 'avatar.jpg'];
-        foreach ($jpgFiles as $jpg) {
-            $jpgPath = $baseDir . '/' . $jpg;
-            if (!file_exists($jpgPath)) {
-                file_put_contents($jpgPath, 'fake jpg content');
-            }
+        $now = time();
+        $currentYear = date('Y', $now);
+        $nextNewYear = mktime(0, 0, 0, 1, 1, $currentYear + 1);
+        $diffSeconds = $nextNewYear - $now;
+        $daysLeft = ceil($diffSeconds / 86400);
+        
+        result("Текущая дата", date('d.m.Y H:i:s'), 'info');
+        result("Следующий Новый Год", "01.01." . ($currentYear + 1), 'success');
+        result("🎅 Дней осталось", $daysLeft, 'success');
+        
+        // Бонус: если уже Новый Год
+        if ($daysLeft <= 0) {
+            result("🎉 Поздравление", "С Новым Годом! 🎊", 'success');
+        } elseif ($daysLeft <= 7) {
+            result("⏰ Скоро!", "Осталась меньше недели!", 'warning');
         }
-        
-        // Поиск файлов с расширением .jpg
-        $pattern = $baseDir . '/*.jpg';
-        $foundFiles = glob($pattern);
-        
-        echo "<p><strong>Поиск по шаблону:</strong> <code>" . htmlspecialchars($pattern) . "</code></p>";
-        
-        if (!empty($foundFiles)) {
-            echo "<table><tr><th>Файл</th><th>Размер</th><th>Полный путь</th></tr>";
-            foreach ($foundFiles as $file) {
-                $name = basename($file);
-                $size = formatSize(filesize($file));
-                echo "<tr>
-                        <td><span class='file-tag'>🖼️ $name</span></td>
-                        <td>$size</td>
-                        <td><small>" . htmlspecialchars($file) . "</small></td>
-                      </tr>";
-            }
-            echo "</table>";
-            message("✅ Найдено файлов: " . count($foundFiles), 'success');
-        } else {
-            message("⚠️ Файлы .jpg не найдены", 'warning');
-        }
-        
-        // Дополнительные примеры glob()
-        echo "<p><strong>💡 Другие примеры glob():</strong></p>";
-        echo "<ul style='font-size:0.9em;color:#aaa;'>
-                <li><code>glob('*.txt')</code> — все текстовые файлы</li>
-                <li><code>glob('folder/*')</code> — все файлы в папке folder</li>
-                <li><code>glob('*.php')</code> — все PHP-файлы</li>
-                <li><code>glob('{*.jpg,*.png}', GLOB_BRACE)</code> — изображения</li>
-              </ul>";
         ?>
     </div>
 
@@ -543,19 +493,15 @@ function message($text, $type = 'info') {
     <!-- ФУТЕР -->
     <!-- ============================================================ -->
     <div class="footer">
-        <p>🎓 <strong>Лабораторная работа №11 выполнена</strong></p>
+        <p>🎓 <strong>Лабораторная работа №12 выполнена</strong></p>
         <p><strong>Gorbunov | Группа 9ПО-31</strong></p>
-        <p>📅 Дата выполнения: <?php echo date('d.m.Y H:i'); ?></p>
-        <p>💻 PHP <?php echo PHP_VERSION; ?> | Nginx</p>
         <p>
-            <span class="file-tag">fopen</span>
-            <span class="file-tag">fwrite</span>
-            <span class="file-tag">fgets</span>
-            <span class="file-tag">rename</span>
-            <span class="file-tag">copy</span>
-            <span class="file-tag">unlink</span>
-            <span class="file-tag">mkdir</span>
-            <span class="file-tag">glob</span>
+            <span class="badge">try/catch</span>
+            <span class="badge">Exception</span>
+            <span class="badge">time()</span>
+            <span class="badge">mktime()</span>
+            <span class="badge">date()</span>
+            <span class="badge">strtotime()</span>
         </p>
         <p>🔗 <a href="https://github.com/blablalblable/gorbunov.com" target="_blank">
             github.com/blablalblable/gorbunov.com
