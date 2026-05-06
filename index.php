@@ -1,16 +1,140 @@
 <?php
 /**
- * Лабораторная работа №12
- * Тема: Обработка исключений и работа с датами в PHP
+ * Лабораторная работа №13
+ * Тема: Объекты и классы в PHP
  * Выполнил: Gorbunov
  * Группа: 9ПО-31
  * Репозиторий: github.com/blablalblable/gorbunov.com
  */
 
-// Базовая директория для логов
-$logFile = __DIR__ . '/files/error_log.txt';
+// ============================================================
+// КЛАСС РАБОТНИКА (по заданию)
+// ============================================================
+class Worker {
+    
+    // === Свойства класса ===
+    // Скрытые (private) свойства - доступ только изнутри класса
+    private $name;
+    private $age;
+    private $salary;
+    
+    // === Конструктор ===
+    // Вызывается автоматически при создании объекта: new Worker(...)
+    public function __construct($name, $age, $salary) {
+        $this->name = $name;
+        // Используем сеттер для валидации возраста при создании
+        $this->setAge($age);
+        $this->salary = $salary;
+    }
+    
+    // === Геттеры (публичные методы для чтения свойств) ===
+    
+    /**
+     * Возвращает имя работника
+     * @return string Имя работника
+     */
+    public function getName() {
+        return $this->name;
+    }
+    
+    /**
+     * Возвращает возраст работника
+     * @return int Возраст
+     */
+    public function getAge() {
+        return $this->age;
+    }
+    
+    /**
+     * Возвращает зарплату работника
+     * @return float Зарплата
+     */
+    public function getSalary() {
+        return $this->salary;
+    }
+    
+    // === Сеттеры (публичные методы для изменения свойств) ===
+    
+    /**
+     * Устанавливает новый возраст с проверкой
+     * @param int $newAge Новый возраст
+     * @return bool Успешно ли изменён возраст
+     */
+    public function setAge($newAge) {
+        // Вызываем приватный метод проверки
+        if ($this->checkAge($newAge)) {
+            $this->age = $newAge;
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Устанавливает новую зарплату
+     * @param float $newSalary Новая зарплата
+     */
+    public function setSalary($newSalary) {
+        if ($newSalary >= 0) {
+            $this->salary = $newSalary;
+        }
+    }
+    
+    // === Приватные методы (доступны только внутри класса) ===
+    
+    /**
+     * Приватный метод проверки возраста
+     * @param int $age Проверяемый возраст
+     * @return bool true если возраст >= 18, иначе false
+     */
+    private function checkAge($age) {
+        if ($age >= 18) {
+            return true;
+        } else {
+            echo "<div class='result error'>❌ <strong>Внимание:</strong> Возраст $age лет — Вам работать в нашей компании еще рано!</div>";
+            return false;
+        }
+    }
+    
+    // === Дополнительные методы для задания ===
+    
+    /**
+     * Статический метод для подсчёта суммы зарплат массива работников
+     * @param Worker[] $workers Массив объектов Worker
+     * @return float Сумма зарплат
+     */
+    public static function sumSalaries(array $workers) {
+        $total = 0;
+        foreach ($workers as $worker) {
+            $total += $worker->getSalary();
+        }
+        return $total;
+    }
+    
+    /**
+     * Статический метод для подсчёта суммы возрастов массива работников
+     * @param Worker[] $workers Массив объектов Worker
+     * @return int Сумма возрастов
+     */
+    public static function sumAges(array $workers) {
+        $total = 0;
+        foreach ($workers as $worker) {
+            $total += $worker->getAge();
+        }
+        return $total;
+    }
+    
+    /**
+     * Возвращает строковое представление работника
+     * @return string Информация о работнике
+     */
+    public function __toString() {
+        return "{$this->name}, {$this->age} лет, зарплата: {$this->salary} руб.";
+    }
+}
 
-// Функция для форматированного вывода
+// ============================================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ВЫВОДА
+// ============================================================
 function result($label, $value, $type = 'info') {
     $colors = ['success' => '#2ecc71', 'error' => '#e74c3c', 'warning' => '#f39c12', 'info' => '#3498db'];
     $color = $colors[$type] ?? $colors['info'];
@@ -18,26 +142,20 @@ function result($label, $value, $type = 'info') {
     echo "<strong style='color:#00d4aa'>{$label}:</strong> <span style='color:#ecf0f1'>" . htmlspecialchars($value) . "</span>";
     echo "</div>";
 }
-
-function logError($message) {
-    global $logFile;
-    $entry = "[" . date('Y-m-d H:i:s') . "] " . $message . PHP_EOL;
-    file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
-}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЛЗ №12 - Исключения и даты - Gorbunov 9ПО-31</title>
+    <title>ЛЗ №13 - Объекты в PHP - Gorbunov 9ПО-31</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 1100px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #ecf0f1;
         }
         .container {
@@ -127,29 +245,17 @@ function logError($message) {
             font-weight: bold;
             margin-left: 10px;
         }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #3a3a5e;
-            border-radius: 6px;
-            background: #16213e;
-            color: #ecf0f1;
-            font-size: 14px;
-        }
-        .form-group input:focus { outline: none; border-color: #00d4aa; }
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
+        .class-diagram {
+            background: #0d0d1a;
+            padding: 15px;
             border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
+            margin: 15px 0;
+            font-family: monospace;
+            border: 1px solid #3a3a5e;
         }
-        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .class-diagram .private { color: #e74c3c; }
+        .class-diagram .public { color: #2ecc71; }
+        .class-diagram .keyword { color: #9b59b6; }
         a { color: #00d4aa; text-decoration: none; }
         a:hover { text-decoration: underline; }
     </style>
@@ -157,335 +263,258 @@ function logError($message) {
 <body>
 <div class="container">
 
-    <h1>⚡ ЛЗ №12: Исключения и даты <span class="badge">Gorbunov 9ПО-31</span></h1>
+    <h1>🧱 ЛЗ №13: Объекты и классы в PHP <span class="badge">Gorbunov 9ПО-31</span></h1>
 
-    <?php
-    // ============================================================
-    // ЧАСТЬ 1: ОБРАБОТКА ИСКЛЮЧЕНИЙ
-    // ============================================================
-    ?>
-
-    <!-- ЗАДАНИЕ 1.1: Обработка ошибки fopen -->
+    <!-- ДИАГРАММА КЛАССА -->
     <div class="task">
-        <h2>📁 Задание 1.1: Обработчик ошибки открытия несуществующего файла</h2>
+        <h2>📐 Структура класса Worker</h2>
+        <div class="class-diagram">
+<pre><code><span class="keyword">class</span> Worker {
+    <span class="private">- private $name</span>
+    <span class="private">- private $age</span>
+    <span class="private">- private $salary</span>
+    
+    <span class="public">+ __construct($name, $age, $salary)</span>
+    <span class="public">+ getName(): string</span>
+    <span class="public">+ getAge(): int</span>
+    <span class="public">+ getSalary(): float</span>
+    <span class="public">+ setAge($newAge): bool</span>
+    <span class="public">+ setSalary($newSalary): void</span>
+    <span class="private">- checkAge($age): bool</span>
+    <span class="public">+ static sumSalaries($workers): float</span>
+    <span class="public">+ static sumAges($workers): int</span>
+}</code></pre>
+        </div>
+        <p><small>🔴 <code>private</code> — доступно только внутри класса | 🟢 <code>public</code> — доступно извне</small></p>
+    </div>
+
+    <!-- ЗАДАНИЕ 1-2: Создание класса и объектов -->
+    <div class="task">
+        <h2>👥 Задание 1-2: Создание класса Worker и двух объектов</h2>
         <?php
-        $nonExistentFile = __DIR__ . '/files/does_not_exist_12345.txt';
+        // Создаём два объекта класса Worker
+        $worker1 = new Worker("Александр Иванов", 25, 45000);
+        $worker2 = new Worker("Мария Петрова", 32, 62000);
         
-        try {
-            // Подавляем стандартное предупреждение и выбрасываем исключение
-            $handle = @fopen($nonExistentFile, 'r');
-            if ($handle === false) {
-                throw new Exception("Не удалось открыть файл: '$nonExistentFile'");
-            }
-            fclose($handle);
-            result("Статус", "Файл открыт успешно", 'success');
-        } catch (Exception $ex) {
-            result("❌ Исключение", $ex->getMessage(), 'error');
-            result("📄 Файл", $ex->getFile() . ':' . $ex->getLine(), 'warning');
-            result("🔢 Код", $ex->getCode(), 'info');
-        }
+        $workers = [$worker1, $worker2];
+        
+        echo "<p><strong>Созданные объекты:</strong></p>";
+        echo "<table>
+                <tr><th>Объект</th><th>Имя</th><th>Возраст</th><th>Зарплата</th></tr>
+                <tr><td><code>\$worker1</code></td><td>{$worker1->getName()}</td><td>{$worker1->getAge()}</td><td>{$worker1->getSalary()} ₽</td></tr>
+                <tr><td><code>\$worker2</code></td><td>{$worker2->getName()}</td><td>{$worker2->getAge()}</td><td>{$worker2->getSalary()} ₽</td></tr>
+              </table>";
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 1.2: Деление на ноль с логированием -->
+    <!-- ЗАДАНИЕ 3: Сумма зарплат и возрастов -->
     <div class="task">
-        <h2>➗ Задание 1.2: Исключение при делении на ноль + запись в log.txt</h2>
+        <h2>🧮 Задание 3: Сумма зарплат и сумма возрастов работников</h2>
         <?php
-        function safeDivide($a, $b) {
-            if ($b == 0) {
-                throw new Exception("DivisionByZeroError: Нельзя делить на ноль! ({$a} / {$b})");
-            }
-            return $a / $b;
-        }
-        
-        $testCases = [[10, 2], [100, 0], [45, 5], [0, 0]];
-        
-        echo "<table><tr><th>Операция</th><th>Результат</th><th>Статус</th></tr>";
-        foreach ($testCases as [$num, $den]) {
-            try {
-                $res = safeDivide($num, $den);
-                echo "<tr><td><code>$num / $den</code></td><td><strong>$res</strong></td><td style='color:#2ecc71'>✅</td></tr>";
-            } catch (Exception $ex) {
-                logError($ex->getMessage());
-                echo "<tr><td><code>$num / $den</code></td><td><strong>Ошибка</strong></td><td style='color:#e74c3c'>❌</td></tr>";
-            }
-        }
-        echo "</table>";
-        
-        // Показать содержимое лога
-        if (file_exists($logFile)) {
-            echo "<p><strong>📋 Содержимое log.txt:</strong></p>";
-            echo "<div class='result'>" . htmlspecialchars(file_get_contents($logFile)) . "</div>";
-        }
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 1.3: Доступ к несуществующему элементу массива -->
-    <div class="task">
-        <h2>🗺️ Задание 1.3: Обработчик для несуществующего ключа в массиве</h2>
-        <?php
-        $countries = ['Spain' => 'Madrid', 'Russia' => 'Moscow', 'France' => 'Paris'];
-        $queries = ['Spain', 'Germany', 'Russia', 'Italy', 'France'];
-        
-        echo "<p><strong>Исходный массив:</strong> <code>" . json_encode($countries, JSON_UNESCAPED_UNICODE) . "</code></p>";
-        echo "<table><tr><th>Запрос</th><th>Результат</th><th>Статус</th></tr>";
-        
-        foreach ($queries as $country) {
-            try {
-                if (!array_key_exists($country, $countries)) {
-                    throw new Exception("KeyError: Страна '$country' не найдена в массиве");
-                }
-                $capital = $countries[$country];
-                echo "<tr><td><code>\$countries['$country']</code></td><td><strong>$capital</strong></td><td style='color:#2ecc71'>✅</td></tr>";
-            } catch (Exception $ex) {
-                echo "<tr><td><code>\$countries['$country']</code></td><td><strong>❌ " . htmlspecialchars($ex->getMessage()) . "</strong></td><td style='color:#e74c3c'>Ошибка</td></tr>";
-            }
-        }
-        echo "</table>";
-        ?>
-    </div>
-
-    <?php
-    // ============================================================
-    // ЧАСТЬ 2: РАБОТА С ДАТАМИ
-    // ============================================================
-    ?>
-
-    <!-- ЗАДАНИЕ 2.1: Вывод даты в формате timestamp -->
-    <div class="task">
-        <h2>⏱️ Задание 2.1: 15 марта 2025, 10:25:00 в формате timestamp</h2>
-        <?php
-        $timestamp = mktime(10, 25, 0, 3, 15, 2025);
-        result("mktime(10, 25, 0, 3, 15, 2025)", $timestamp, 'success');
-        result("Проверка через date()", date('d.m.Y H:i:s', $timestamp), 'info');
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.2: Разница между датами в секундах -->
-    <div class="task">
-        <h2>📊 Задание 2.2: Разница между 2.10.1990 08:05:59 и текущим временем</h2>
-        <?php
-        $past = mktime(8, 5, 59, 10, 2, 1990);
-        $now = time();
-        $diff = $now - $past;
-        
-        $years = floor($diff / 31536000);
-        $days = floor(($diff % 31536000) / 86400);
-        $hours = floor(($diff % 86400) / 3600);
-        $minutes = floor(($diff % 3600) / 60);
-        $seconds = $diff % 60;
+        $totalSalary = Worker::sumSalaries($workers);
+        $totalAge = Worker::sumAges($workers);
         
         echo "<table>
-                <tr><th>Единица</th><th>Значение</th></tr>
-                <tr><td>Секунды</td><td><strong>$diff</strong></td></tr>
-                <tr><td>Минуты</td><td><strong>" . round($diff / 60) . "</strong></td></tr>
-                <tr><td>Часы</td><td><strong>" . round($diff / 3600) . "</strong></td></tr>
-                <tr><td>Дни</td><td><strong>" . round($diff / 86400) . "</strong></td></tr>
-                <tr><td>Годы (прибл.)</td><td><strong>$years лет, $days дней</strong></td></tr>
+                <tr><th>Показатель</th><th>Расчёт</th><th>Результат</th></tr>
+                <tr><td>💰 Сумма зарплат</td><td><code>{$worker1->getSalary()} + {$worker2->getSalary()}</code></td><td><strong>{$totalSalary} ₽</strong></td></tr>
+                <tr><td>🎂 Сумма возрастов</td><td><code>{$worker1->getAge()} + {$worker2->getAge()}</code></td><td><strong>{$totalAge} лет</strong></td></tr>
+                <tr><td>📊 Средняя зарплата</td><td><code>{$totalSalary} / 2</code></td><td><strong>" . round($totalSalary / 2) . " ₽</strong></td></tr>
+                <tr><td>📈 Средний возраст</td><td><code>{$totalAge} / 2</code></td><td><strong>" . round($totalAge / 2) . " лет</strong></td></tr>
               </table>";
-        result("Точная разница", "$years лет, $days дней, $hours ч, $minutes мин, $seconds сек", 'success');
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.3: Текущая дата в формате 'Год.месяц.день Час:Минута:Секунда' -->
+    <!-- ЗАДАНИЕ 4: Геттеры getName, getAge, getSalary -->
     <div class="task">
-        <h2>📅 Задание 2.3: Текущая дата-время в формате 'Год.месяц.день Час:Минута:Секунда'</h2>
+        <h2>🔓 Задание 4: Методы getName(), getAge(), getSalary()</h2>
         <?php
-        $formatted = date('Y.m.d H:i:s');
-        result("date('Y.m.d H:i:s')", $formatted, 'success');
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.4: 1 сентября текущего года -->
-    <div class="task">
-        <h2>🍂 Задание 2.4: 1-го сентября текущего года в формате 'Год.месяц.день'</h2>
-        <?php
-        $sept1 = mktime(0, 0, 0, 9, 1); // год опущен = текущий
-        $formatted = date('Y.m.d', $sept1);
-        result("1 сентября " . date('Y'), $formatted, 'success');
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.5: День недели 2 февраля 2000 -->
-    <div class="task">
-        <h2>🗓️ Задание 2.5: Какой день недели был 2 февраля 2000 года?</h2>
-        <?php
-        $feb2_2000 = mktime(0, 0, 0, 2, 2, 2000);
-        $dayNum = date('w', $feb2_2000); // 0=Воскресенье, 1=Понедельник...
-        $daysRu = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-        $dayName = $daysRu[$dayNum];
+        echo "<p><strong>Демонстрация работы геттеров:</strong></p>";
+        echo "<table>
+                <tr><th>Метод</th><th>Вызов</th><th>Результат</th></tr>
+                <tr><td><code>getName()</code></td><td><code>\$worker1->getName()</code></td><td><strong>{$worker1->getName()}</strong></td></tr>
+                <tr><td><code>getAge()</code></td><td><code>\$worker1->getAge()</code></td><td><strong>{$worker1->getAge()} лет</strong></td></tr>
+                <tr><td><code>getSalary()</code></td><td><code>\$worker1->getSalary()</code></td><td><strong>{$worker1->getSalary()} ₽</strong></td></tr>
+                <tr><td><code>getName()</code></td><td><code>\$worker2->getName()</code></td><td><strong>{$worker2->getName()}</strong></td></tr>
+                <tr><td><code>getAge()</code></td><td><code>\$worker2->getAge()</code></td><td><strong>{$worker2->getAge()} лет</strong></td></tr>
+                <tr><td><code>getSalary()</code></td><td><code>\$worker2->getSalary()</code></td><td><strong>{$worker2->getSalary()} ₽</strong></td></tr>
+              </table>";
         
-        result("date('w', mktime(0,0,0,2,2,2000))", "$dayNum ($dayName)", 'success');
-        result("Полная дата", date('d.m.Y, l', $feb2_2000), 'info');
+        result("✅ Геттеры работают корректно", "Доступ к приватным свойствам через публичные методы", 'success');
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.6: Массив дней недели + текущий день + день рождения -->
+    <!-- ЗАДАНИЕ 5: getSalary для суммы зарплат -->
     <div class="task">
-        <h2>🎂 Задание 2.6: Массив дней недели, текущий день и 12.06.2016</h2>
+        <h2>💼 Задание 5: Статический метод sumSalaries() для суммы зарплат</h2>
         <?php
-        // Массив дней недели
-        $week = [
-            0 => 'Воскресенье', 1 => 'Понедельник', 2 => 'Вторник',
-            3 => 'Среда', 4 => 'Четверг', 5 => 'Пятница', 6 => 'Суббота'
+        // Демонстрация статического метода
+        echo "<p><strong>Использование статического метода <code>Worker::sumSalaries()</code>:</strong></p>";
+        
+        // Тест с разным количеством работников
+        $testCases = [
+            ['workers' => [$worker1], 'label' => 'Только Александр'],
+            ['workers' => [$worker2], 'label' => 'Только Мария'],
+            ['workers' => $workers, 'label' => 'Оба работника'],
         ];
         
-        // Текущий день
-        $todayNum = date('w');
-        $todayName = $week[$todayNum];
-        
-        // День рождения 12.06.2016
-        $bday = mktime(0, 0, 0, 6, 12, 2016);
-        $bdayNum = date('w', $bday);
-        $bdayName = $week[$bdayNum];
-        
         echo "<table>
-                <tr><th>Параметр</th><th>Значение</th></tr>
-                <tr><td>Массив \$week</td><td><code>[" . implode(', ', array_map(fn($k,$v)=>"'$k'=>'$v'", array_keys($week), $week)) . "]</code></td></tr>
-                <tr><td>Сегодня (номер)</td><td><code>$todayNum</code></td></tr>
-                <tr><td>Сегодня (название)</td><td><strong>$todayName</strong></td></tr>
-                <tr><td>12.06.2016 (номер)</td><td><code>$bdayNum</code></td></tr>
-                <tr><td>12.06.2016 (название)</td><td><strong>$bdayName</strong></td></tr>
-              </table>";
-        result("🎉 День рождения 12.06.2016", "Выпал на $bdayName", 'success');
-        ?>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.7: Форма сравнения двух дат -->
-    <div class="task">
-        <h2>🔀 Задание 2.7: Форма для сравнения двух дат</h2>
-        
-        <?php if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['compare_dates'])): ?>
-            <?php
-            $date1 = $_POST['date1'] ?? '';
-            $date2 = $_POST['date2'] ?? '';
-            
-            if (!empty($date1) && !empty($date2)) {
-                $ts1 = strtotime($date1);
-                $ts2 = strtotime($date2);
-                
-                if ($ts1 === false || $ts2 === false) {
-                    result("❌ Ошибка", "Неверный формат даты", 'error');
-                } else {
-                    $later = $ts1 > $ts2 ? $date1 : $date2;
-                    $earlier = $ts1 > $ts2 ? $date2 : $date1;
-                    $diff = abs($ts1 - $ts2);
-                    $diffDays = floor($diff / 86400);
-                    
-                    echo "<div class='result success'>";
-                    echo "✅ Более поздняя дата: <strong>$later</strong><br>";
-                    echo "📅 Более ранняя: $earlier<br>";
-                    echo "📊 Разница: $diffDays дней";
-                    echo "</div>";
-                }
-            }
-            ?>
-        <?php endif; ?>
-        
-        <form method="POST" style="background:#16213e;padding:20px;border-radius:8px;margin-top:15px;">
-            <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
-                <div class="form-group">
-                    <label for="date1">Первая дата (формат: 2025-12-31)</label>
-                    <input type="date" id="date1" name="date1" value="<?= $_POST['date1'] ?? '' ?>" required>
-                </div>
-                <div class="form-group">
-                    <label for="date2">Вторая дата (формат: 2025-12-31)</label>
-                    <input type="date" id="date2" name="date2" value="<?= $_POST['date2'] ?? '' ?>" required>
-                </div>
-            </div>
-            <button type="submit" name="compare_dates" class="btn">🔍 Сравнить даты</button>
-        </form>
-    </div>
-
-    <!-- ЗАДАНИЕ 2.8: Конвертация формата даты -->
-    <div class="task">
-        <h2>🔄 Задание 2.8: Конвертация 'Год-месяц-день' → 'день-месяц-год'</h2>
-        <?php
-        $inputDate = '2025-12-31';
-        $timestamp = strtotime($inputDate);
-        $output = date('d-m-Y', $timestamp);
-        
-        echo "<table>
-                <tr><th>Исходный формат</th><th>Значение</th></tr>
-                <tr><td>Вход (строка)</td><td><code>$inputDate</code></td></tr>
-                <tr><td>strtotime()</td><td><code>$timestamp</code></td></tr>
-                <tr><td>date('d-m-Y', ...)</td><td><strong>$output</strong></td></tr>
-              </table>";
-        result("Результат конвертации", "$inputDate → $output", 'success');
-        
-        // Тест с другой датой
-        $testDates = ['2000-01-01', '2024-02-29', '1999-12-31'];
-        echo "<p><strong>Дополнительные тесты:</strong></p><ul>";
-        foreach ($testDates as $d) {
-            $converted = date('d-m-Y', strtotime($d));
-            echo "<li><code>$d</code> → <strong>$converted</strong></li>";
+                <tr><th>Состав</th><th>Код</th><th>Сумма</th></tr>";
+        foreach ($testCases as $test) {
+            $sum = Worker::sumSalaries($test['workers']);
+            echo "<tr>
+                    <td>{$test['label']}</td>
+                    <td><code>Worker::sumSalaries(\$workers)</code></td>
+                    <td><strong>{$sum} ₽</strong></td>
+                  </tr>";
         }
-        echo "</ul>";
+        echo "</table>";
+        
+        result("💡 Статические методы", "Вызываются через имя класса: <code>Worker::method()</code>, не требуют создания объекта", 'info');
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.9: Манипуляции с датой через date_create/modify -->
+    <!-- ЗАДАНИЕ 6: setAge с валидацией и private age -->
     <div class="task">
-        <h2>➕➖ Задание 2.9: Прибавление и вычитание интервалов от даты</h2>
+        <h2>🔐 Задание 6: setAge() с проверкой возраста >= 18, свойство age — private</h2>
         <?php
-        $date = date_create('2000-02-03');
-        $original = date_format($date, 'd.m.Y');
+        echo "<p><strong>Тестирование метода <code>setAge()</code> с валидацией:</strong></p>";
         
-        echo "<p><strong>Исходная дата:</strong> <code>$original</code></p>";
-        echo "<table><tr><th>Операция</th><th>Результат</th><th>Код</th></tr>";
+        // Создаём нового работника для тестов
+        $testWorker = new Worker("Тестовый Пользователь", 20, 30000);
         
-        // +2 дня
-        $d1 = clone $date;
-        date_modify($d1, '+2 days');
-        echo "<tr><td>+2 дня</td><td><strong>" . date_format($d1, 'd.m.Y') . "</strong></td><td><code>+2 days</code></td></tr>";
+        $testAges = [16, 17, 18, 25, 30, 100];
         
-        // +1 месяц
-        $d2 = clone $date;
-        date_modify($d2, '+1 month');
-        echo "<tr><td>+1 месяц</td><td><strong>" . date_format($d2, 'd.m.Y') . "</strong></td><td><code>+1 month</code></td></tr>";
+        echo "<table>
+                <tr><th>Попытка установить возраст</th><th>Результат</th><th>Текущий возраст</th></tr>";
+        foreach ($testAges as $age) {
+            $success = $testWorker->setAge($age);
+            $currentAge = $testWorker->getAge();
+            $status = $success ? 
+                "<span style='color:#2ecc71'>✅ Успешно</span>" : 
+                "<span style='color:#e74c3c'>❌ Отклонено</span>";
+            echo "<tr>
+                    <td><code>setAge($age)</code></td>
+                    <td>$status</td>
+                    <td><strong>$currentAge лет</strong></td>
+                  </tr>";
+        }
+        echo "</table>";
         
-        // +3 дня +1 год
-        $d3 = clone $date;
-        date_modify($d3, '+3 days +1 year');
-        echo "<tr><td>+3 дня +1 год</td><td><strong>" . date_format($d3, 'd.m.Y') . "</strong></td><td><code>+3 days +1 year</code></td></tr>";
+        result("🔒 Инкапсуляция", "Свойство <code>\$age</code> объявлено как <code>private</code> — доступ только через методы класса", 'success');
+        ?>
+    </div>
+
+    <!-- ЗАДАНИЕ 7: Метод checkAge() -->
+    <div class="task">
+        <h2>✅ Задание 7: Метод checkAge() — проверка возраста >= 18</h2>
+        <?php
+        echo "<p><strong>Демонстрация логики проверки возраста:</strong></p>";
         
-        // -3 дня
-        $d4 = clone $date;
-        date_modify($d4, '-3 days');
-        echo "<tr><td>-3 дня</td><td><strong>" . date_format($d4, 'd.m.Y') . "</strong></td><td><code>-3 days</code></td></tr>";
+        // Поскольку checkAge() приватный, тестируем через setAge()
+        echo "<div class='result'>";
+        echo "📋 Логика метода <code>checkAge(\$age)</code>:\n";
+        echo "  if (\$age >= 18) {\n";
+        echo "      return true;  // Можно работать\n";
+        echo "  } else {\n";
+        echo "      echo \"Вам работать в нашей компании еще рано\";\n";
+        echo "      return false; // Нельзя работать\n";
+        echo "  }";
+        echo "</div>";
         
-        // Комбинированная операция по заданию: +2д +1м +3д +1г -3д
-        $dFinal = clone $date;
-        date_modify($dFinal, '+2 days +1 month +3 days +1 year -3 days');
-        echo "<tr style='background:#00d4aa20'>
-                <td><strong>Итог: +2д +1м +3д +1г -3д</strong></td>
-                <td><strong>" . date_format($dFinal, 'd.m.Y') . "</strong></td>
-                <td><code>+2d +1m +3d +1y -3d</code></td>
-              </tr>";
+        // Визуальная проверка
+        $checkResults = [
+            ['age' => 15, 'expected' => false],
+            ['age' => 17, 'expected' => false],
+            ['age' => 18, 'expected' => true],
+            ['age' => 25, 'expected' => true],
+            ['age' => 65, 'expected' => true],
+        ];
+        
+        echo "<table>
+                <tr><th>Возраст</th><th>Условие</th><th>Ожидаемый результат</th></tr>";
+        foreach ($checkResults as $item) {
+            $condition = $item['age'] >= 18 ? '≥ 18' : '< 18';
+            $result = $item['expected'] ? '✅ true (можно)' : '❌ false (нельзя)';
+            echo "<tr>
+                    <td><strong>{$item['age']} лет</strong></td>
+                    <td><code>\$age $condition</code></td>
+                    <td>$result</td>
+                  </tr>";
+        }
         echo "</table>";
         ?>
     </div>
 
-    <!-- ЗАДАНИЕ 2.10: Дней до Нового Года -->
+    <!-- ЗАДАНИЕ 8: checkAge() private, setAge() public -->
     <div class="task">
-        <h2>🎄 Задание 2.10: Сколько дней осталось до Нового Года?</h2>
+        <h2>🛡️ Задание 8: checkAge() — private, setAge() — public с использованием checkAge()</h2>
         <?php
-        $now = time();
-        $currentYear = date('Y', $now);
-        $nextNewYear = mktime(0, 0, 0, 1, 1, $currentYear + 1);
-        $diffSeconds = $nextNewYear - $now;
-        $daysLeft = ceil($diffSeconds / 86400);
+        echo "<p><strong>Архитектура методов:</strong></p>";
         
-        result("Текущая дата", date('d.m.Y H:i:s'), 'info');
-        result("Следующий Новый Год", "01.01." . ($currentYear + 1), 'success');
-        result("🎅 Дней осталось", $daysLeft, 'success');
+        echo "<div class='class-diagram'>
+<pre><code><span class="keyword">class</span> Worker {
+    <span class="private">- private function checkAge(\$age): bool</span>
+    <span class="public">  ↓ вызывается из</span>
+    <span class="public">+ public function setAge(\$newAge): bool</span>
+}
+
+<span class="comment">// setAge() делегирует проверку приватному методу:</span>
+<span class="keyword">public function</span> setAge(\$newAge) {
+    <span class="keyword">if</span> (\$<span class="keyword">this</span>->checkAge(\$newAge)) {  <span class="comment">// ← вызов private</span>
+        \$<span class="keyword">this</span>->age = \$newAge;
+        <span class="keyword">return</span> true;
+    }
+    <span class="keyword">return</span> false;
+}</code></pre>
+        </div>";
         
-        // Бонус: если уже Новый Год
-        if ($daysLeft <= 0) {
-            result("🎉 Поздравление", "С Новым Годом! 🎊", 'success');
-        } elseif ($daysLeft <= 7) {
-            result("⏰ Скоро!", "Осталась меньше недели!", 'warning');
-        }
+        echo "<p><strong>Преимущества такого подхода:</strong></p>";
+        echo "<ul>
+                <li>✅ <strong>Инкапсуляция:</strong> Логика проверки скрыта внутри класса</li>
+                <li>✅ <strong>Единая точка изменения:</strong> Если правила возраста изменятся, правим только <code>checkAge()</code></li>
+                <li>✅ <strong>Безопасность:</strong> Внешний код не может обойти проверку</li>
+                <li>✅ <strong>Чистота кода:</strong> <code>setAge()</code> отвечает за изменение, <code>checkAge()</code> — за валидацию</li>
+              </ul>";
+        
+        // Финальный тест
+        $finalWorker = new Worker("Финальный Тест", 30, 50000);
+        echo "<p><strong>Финальный тест:</strong></p>";
+        echo "<div class='result success'>";
+        echo "👤 Работник: {$finalWorker->getName()}<br>";
+        echo "🎂 Возраст: {$finalWorker->getAge()} лет<br>";
+        echo "💰 Зарплата: {$finalWorker->getSalary()} ₽<br>";
+        echo "🔐 Попытка setAge(16): ";
+        $finalWorker->setAge(16); // Должно вывести сообщение об ошибке
+        echo "<br>🎂 Возраст после попытки: <strong>{$finalWorker->getAge()} лет</strong> (не изменился!)";
+        echo "</div>";
+        ?>
+    </div>
+
+    <!-- БОНУС: Демонстрация инкапсуляции -->
+    <div class="task">
+        <h2>🎁 Бонус: Почему инкапсуляция важна?</h2>
+        <?php
+        echo "<p><strong>Попытка прямого доступа к приватному свойству:</strong></p>";
+        
+        echo "<div class='result error'>";
+        echo "<pre><code>\$worker = new Worker(\"Тест\", 25, 40000);
+// ❌ Это НЕ сработает - свойство private:
+echo \$worker->age;        // Fatal error!
+\$worker->age = 10;        // Fatal error!
+
+// ✅ Правильный способ - через публичные методы:
+echo \$worker->getAge();   // 25
+\$worker->setAge(26);      // Успешно, если >= 18</code></pre>";
+        echo "</div>";
+        
+        echo "<p><strong>Преимущества инкапсуляции:</strong></p>";
+        echo "<table>
+                <tr><th>Без инкапсуляции</th><th>С инкапсуляцией</th></tr>
+                <tr><td>Любой код может изменить \$age</td><td>Только setAge() может изменить</td></tr>
+                <tr><td>Нет проверки возраста</td><td>Автоматическая валидация >= 18</td></tr>
+                <tr><td>Сложно отследить изменения</td><td>Все изменения в одном месте</td></tr>
+                <tr><td>Легко допустить ошибку</td><td>Класс сам защищает свои данные</td></tr>
+              </table>";
         ?>
     </div>
 
@@ -493,15 +522,16 @@ function logError($message) {
     <!-- ФУТЕР -->
     <!-- ============================================================ -->
     <div class="footer">
-        <p>🎓 <strong>Лабораторная работа №12 выполнена</strong></p>
+        <p>🎓 <strong>Лабораторная работа №13 выполнена</strong></p>
         <p><strong>Gorbunov | Группа 9ПО-31</strong></p>
+        
         <p>
-            <span class="badge">try/catch</span>
-            <span class="badge">Exception</span>
-            <span class="badge">time()</span>
-            <span class="badge">mktime()</span>
-            <span class="badge">date()</span>
-            <span class="badge">strtotime()</span>
+            <span class="badge">class</span>
+            <span class="badge">private/public</span>
+            <span class="badge">__construct</span>
+            <span class="badge">getters/setters</span>
+            <span class="badge">static</span>
+            <span class="badge">инкапсуляция</span>
         </p>
         <p>🔗 <a href="https://github.com/blablalblable/gorbunov.com" target="_blank">
             github.com/blablalblable/gorbunov.com
